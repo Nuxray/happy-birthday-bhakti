@@ -337,6 +337,51 @@
   }
   #firework-continue-wrap{ position: relative; z-index: 3; min-height: 52px; }
 
+  /* ---------- Scene 4: dinner invite ---------- */
+  .dinner-question{
+    font-size: clamp(1.7rem, 6vw, 2.6rem);
+    max-width: 18ch;
+    margin: 0 0 10px;
+  }
+  .dinner-details{
+    color: var(--cream-dim);
+    font-weight: 300;
+    max-width: 32ch;
+    margin: 0 0 8px;
+    font-size: 1rem;
+  }
+  .dinner-stage{
+    position: relative;
+    width: min(360px, 90vw);
+    height: 170px;
+    margin: 34px auto 0;
+  }
+  .dinner-stage .btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #dinner-yes{ left: 24%; transform: translate(-50%, -50%); transition: transform .25s ease, box-shadow .25s ease; }
+  #dinner-no{
+    left: 68%;
+    transition: left .22s ease, top .22s ease;
+  }
+  .dinner-confirm{
+    display: none;
+  }
+  .dinner-confirm.active{ display: block; }
+  .dinner-confirm-text{
+    font-size: clamp(1.5rem, 5.5vw, 2.1rem);
+    max-width: 20ch;
+    margin: 0 0 10px;
+  }
+  .dinner-confirm-details{
+    color: var(--gold-soft);
+    font-weight: 300;
+    font-size: 1.02rem;
+    margin: 0 0 34px;
+  }
+
   /* ---------- Scene 3: finale ---------- */
   #confetti-canvas{
     position: fixed; inset: 0; z-index: 2; pointer-events: none;
@@ -514,7 +559,26 @@
   <h1 class="finale-title display">Happy Birthday<span class="script-name script" id="finale-name">Bhakti</span></h1>
   <p class="finale-msg" id="finale-msg"></p>
   <p class="finale-from script" id="finale-from"></p>
-  <button class="btn ghost" id="btn-replay">Play it again</button>
+  <button class="btn" id="btn-to-dinner">One more thing →</button>
+</section>
+
+<!-- SCENE 4 — DINNER INVITE -->
+<section class="scene" id="scene-dinner">
+  <div id="dinner-ask">
+    <p class="eyebrow">one more thing</p>
+    <h2 class="dinner-question display" id="dinner-question">Will you have dinner with me tonight?</h2>
+    <p class="dinner-details" id="dinner-details"></p>
+    <div class="dinner-stage" id="dinner-stage">
+      <button class="btn" id="dinner-yes">Yes 🎉</button>
+      <button class="btn ghost" id="dinner-no">No</button>
+    </div>
+  </div>
+  <div class="dinner-confirm" id="dinner-confirm">
+    <p class="eyebrow">it's a date</p>
+    <p class="dinner-confirm-text display" id="dinner-confirm-text"></p>
+    <p class="dinner-confirm-details" id="dinner-confirm-details"></p>
+    <button class="btn ghost" id="btn-replay">Play it again</button>
+  </div>
 </section>
 
 <footer class="credit">made with love, one tap at a time</footer>
@@ -573,7 +637,17 @@ const CONFIG = {
   ],
 
   // Shown on the very last screen, under the big Happy Birthday.
-  finalMessage: "Thank you for being exactly who you are. I love you more than this little page could ever hold."
+  finalMessage: "Thank you for being exactly who you are. I love you more than this little page could ever hold.",
+
+  // The dinner invite screen at the very end. Edit freely — the "No"
+  // button is designed to dodge the cursor/tap, so "Yes" is the only
+  // real option (that's the fun of it).
+  dinner: {
+    question: "Will you have dinner with me tonight?",
+    details: "8:00 PM • I'm picking the place, just show up beautiful.",
+    yesResponse: "Yay! I'll pick you up at 8.",
+    yesDetails: "Wear something comfy. Can't wait."
+  }
 };
 /* ====================================================================== */
 
@@ -582,6 +656,10 @@ document.getElementById('finale-name').textContent = CONFIG.name;
 document.getElementById('finale-msg').textContent = CONFIG.finalMessage;
 document.getElementById('finale-from').textContent = CONFIG.from;
 document.title = "Happy Birthday, " + CONFIG.name;
+document.getElementById('dinner-question').textContent = CONFIG.dinner.question;
+document.getElementById('dinner-details').textContent = CONFIG.dinner.details;
+document.getElementById('dinner-confirm-text').textContent = CONFIG.dinner.yesResponse;
+document.getElementById('dinner-confirm-details').textContent = CONFIG.dinner.yesDetails;
 
 /* ---------- Optional photos ---------- */
 if(CONFIG.introPhoto){
@@ -711,6 +789,7 @@ const scenes = {
   cake: document.getElementById('scene-cake'),
   fireworks: document.getElementById('scene-fireworks'),
   finale: document.getElementById('scene-finale'),
+  dinner: document.getElementById('scene-dinner'),
 };
 function goTo(name){
   Object.values(scenes).forEach(s => s.classList.remove('active'));
@@ -719,6 +798,7 @@ function goTo(name){
 }
 
 document.getElementById('btn-start').addEventListener('click', () => { startMusic(); goTo('hearts'); });
+document.getElementById('btn-to-dinner').addEventListener('click', () => goTo('dinner'));
 document.getElementById('btn-replay').addEventListener('click', () => {
   document.querySelectorAll('.heart-btn.opened').forEach(h => h.classList.remove('opened'));
   document.querySelectorAll('.progress span').forEach(d => d.classList.remove('done'));
@@ -735,8 +815,75 @@ document.getElementById('btn-replay').addEventListener('click', () => {
   fwHint.textContent = 'tap anywhere to set one off ✨';
   fwCountEl.textContent = '';
   fwContinueWrap.innerHTML = '';
+  resetDinnerScene();
   goTo('intro');
 });
+
+/* ---------- Dinner invite: "No" can't be caught ---------- */
+const dinnerStage = document.getElementById('dinner-stage');
+const dinnerAsk = document.getElementById('dinner-ask');
+const dinnerConfirm = document.getElementById('dinner-confirm');
+const dinnerYes = document.getElementById('dinner-yes');
+const dinnerNo = document.getElementById('dinner-no');
+let dodgeCount = 0;
+
+function dodgeNoButton(){
+  dodgeCount++;
+  const stageW = dinnerStage.clientWidth;
+  const stageH = dinnerStage.clientHeight;
+  const btnW = dinnerNo.offsetWidth;
+  const btnH = dinnerNo.offsetHeight;
+  const maxX = Math.max(0, stageW - btnW);
+  const maxY = Math.max(0, stageH - btnH);
+  const newX = Math.random() * maxX;
+  const newY = Math.random() * maxY;
+  dinnerNo.style.left = newX + 'px';
+  dinnerNo.style.top = newY + 'px';
+  dinnerNo.style.transform = 'translateY(0)';
+  // give "Yes" a little encouraging pulse, capped so it doesn't take over the layout
+  const scale = Math.min(1.35, 1 + dodgeCount * 0.05);
+  dinnerYes.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+function placeNoButtonInitial(){
+  const stageW = dinnerStage.clientWidth;
+  const stageH = dinnerStage.clientHeight;
+  const btnW = dinnerNo.offsetWidth || 90;
+  const btnH = dinnerNo.offsetHeight || 46;
+  dinnerNo.style.left = Math.max(0, stageW * 0.66 - btnW/2) + 'px';
+  dinnerNo.style.top = Math.max(0, stageH/2 - btnH/2) + 'px';
+  dinnerNo.style.transform = 'translateY(0)';
+}
+
+dinnerNo.addEventListener('mouseenter', dodgeNoButton);
+dinnerNo.addEventListener('touchstart', (e) => { e.preventDefault(); dodgeNoButton(); }, { passive: false });
+dinnerNo.addEventListener('pointerdown', (e) => {
+  if(e.pointerType === 'touch') return; // handled by touchstart above
+  e.preventDefault();
+  dodgeNoButton();
+});
+dinnerNo.addEventListener('click', (e) => { e.preventDefault(); dodgeNoButton(); });
+dinnerNo.addEventListener('focus', dodgeNoButton);
+
+dinnerYes.addEventListener('click', () => {
+  dinnerAsk.style.display = 'none';
+  dinnerConfirm.classList.add('active');
+});
+
+function resetDinnerScene(){
+  dodgeCount = 0;
+  dinnerAsk.style.display = '';
+  dinnerConfirm.classList.remove('active');
+  dinnerYes.style.transform = 'translate(-50%, -50%) scale(1)';
+  placeNoButtonInitial();
+}
+window.addEventListener('resize', () => {
+  if(scenes.dinner.classList.contains('active') && dinnerAsk.style.display !== 'none'){
+    placeNoButtonInitial();
+  }
+});
+// set an initial position once the layout is ready
+requestAnimationFrame(placeNoButtonInitial);
 
 /* ---------- Heart field ---------- */
 const heartSvg = `<svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg"><path class="fill" d="M16 28.4C16 28.4 1 19.6 1 9.6 1 4.6 4.9 1 9.6 1c2.7 0 5.2 1.3 6.4 3.4C17.2 2.3 19.7 1 22.4 1 27.1 1 31 4.6 31 9.6c0 10-15 18.8-15 18.8z"/></svg>`;
