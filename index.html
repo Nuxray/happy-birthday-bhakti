@@ -223,7 +223,7 @@
   }
   .note-photo{
     width: 100%;
-    max-height: 260px;
+    aspect-ratio: 4/5;
     object-fit: cover;
     border-radius: 14px;
     margin: 0 0 22px;
@@ -361,7 +361,7 @@
     top: 50%;
     transform: translateY(-50%);
   }
-  #dinner-yes{ left: 24%; transform: translate(-50%, -50%); transition: transform .25s ease, box-shadow .25s ease; }
+  #dinner-yes{ left: 24%; transform: translate(-50%, -50%); transition: transform .3s ease, box-shadow .25s ease; z-index: 2; }
   #dinner-no{
     left: 68%;
     transition: left .22s ease, top .22s ease;
@@ -608,13 +608,10 @@ const CONFIG = {
   from: "— your husband",            // signed off on the finale screen, edit freely
 
   // Optional cover photo shown on the very first screen (polaroid style).
-  // DEMO: this is a random placeholder photo so you can see how it looks.
-  // Replace with "assets/cover.jpg" once you add your real photo.
-  introPhoto: "https://picsum.photos/seed/bhakti-cover/500/500",
+  introPhoto: "assets/cover.jpg",
 
   // Optional photo shown on the final Happy Birthday screen.
-  // DEMO placeholder — replace with "assets/us.jpg" etc.
-  finalePhoto: "https://picsum.photos/seed/bhakti-finale/500/500",
+  finalePhoto: "assets/us.jpg",
 
   // Background song that starts playing when she taps "Open it".
   music: {
@@ -628,12 +625,12 @@ const CONFIG = {
   // The 6 hearts she taps, in any order. Each can have text only, or text
   // + a photo. Leave photo: "" to skip the image for that heart.
   heartMessages: [
-    { text: "You kiss me — then bite me — every single time you see me. I still don't know if that's love or a warning, but I wouldn't trade it for anything.", photo: "https://picsum.photos/seed/bhakti-1/500/400" },
-    { text: "I see how hard you work, at home, at your job, everywhere in between, and I don't say it enough: I notice. All of it. And I'm so proud of you.", photo: "https://picsum.photos/seed/bhakti-3/500/400" },
-    { text: "Sweet cheeks. I don't even remember when it started, but I can't imagine calling you anything else now.", photo: "https://picsum.photos/seed/bhakti-2/500/400" },
-    { text: "I still think about your face when you found out about Manali. That kind of happy is the whole reason I book flights.", photo: "https://picsum.photos/seed/bhakti-manali/500/400" },
-    { text: "Between the chores, the deadlines, and everything else you carry, you still find a way to make our home feel warm. That's not small. That's everything.", photo: "https://picsum.photos/seed/bhakti-5/500/400" },
-    { text: "Here's to another year of sweet cheeks kisses, surprise trips, and everything in between.", photo: "https://picsum.photos/seed/bhakti-6/500/400" }
+    { text: "The way you carry yourself, easy, sure, unbothered, is honestly one of the most attractive things about you. I've watched you own a room most people would shrink in.", photo: "assets/heart_01.jpg" },
+    { text: "You don't wait for permission to be exactly who you are. Saying what you mean, going after what you want, that kind of boldness is rare, and it's very, very you.", photo: "assets/heart_02.jpg" },
+    { text: "Whether it's a stranger who walks into your clinic or me on a bad day, you show up with the same gentleness. Your loving side isn't loud, it just quietly takes care of everyone around it.", photo: "assets/heart_03.jpg" },
+    { text: "You hold so much together, work, home, everyone's expectations, and somehow you never let it show. I see the weight you carry, and I see exactly how well you carry it.", photo: "assets/heart_04.jpg" },
+    { text: "That little shy smile you get when you're happy about something small, like flowers on a random evening, is the cutest thing I've ever seen and I will never get tired of causing it.", photo: "assets/heart_05.jpg" },
+    { text: "Even out chasing views and mountain air in your own world, some part of you always finds its way back to me. That's what your love feels like.", photo: "assets/heart_06.jpg" }
   ],
 
   // Shown on the very last screen, under the big Happy Birthday.
@@ -840,8 +837,8 @@ function dodgeNoButton(){
   dinnerNo.style.left = newX + 'px';
   dinnerNo.style.top = newY + 'px';
   dinnerNo.style.transform = 'translateY(0)';
-  // give "Yes" a little encouraging pulse, capped so it doesn't take over the layout
-  const scale = Math.min(1.35, 1 + dodgeCount * 0.05);
+  // give "Yes" a little encouraging pulse — grows a bit more with every dodge
+  const scale = 1 + dodgeCount * 0.06;
   dinnerYes.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
 
